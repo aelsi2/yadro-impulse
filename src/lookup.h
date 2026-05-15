@@ -20,7 +20,7 @@ void cell_key_free(cell_key_t *key);
 
 typedef struct {
     cell_key_t key;
-    const struct cell *cell;
+    struct cell *cell;
     bool occupied;
 } lookup_slot_t;
 
@@ -29,9 +29,9 @@ typedef struct {
     size_t capacity;
 } lookup_t;
 
-void lookup_set(lookup_t *lookup, const cell_key_t *cell_key, const struct cell *cell);
-const struct cell *lookup_get(const lookup_t *lookup,
-                              const cell_key_t *cell_key);
+void lookup_set(lookup_t *lookup, const cell_key_t *cell_key,
+                struct cell *cell);
+struct cell *lookup_get(const lookup_t *lookup, const cell_key_t *cell_key);
 
 void lookup_init(lookup_t *lookup);
 void lookup_free(lookup_t *lookup);
