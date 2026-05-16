@@ -21,13 +21,10 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 $(TARGET_EXEC): $(OBJECTS)
-	$(LINK.c) $(LIBS) $(OBJECTS) -o $@
+	$(LINK.c) $^ -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	@mkdir -p $(@D)
+	@mkdir -p $(dir $@)
 	$(COMPILE.c) $< -o $@
 
-$(BUILD_DIR)/%.d: $(BUILD_DIR)/%.o
-	@: # Needed for GNU Make
-
-include $(DEPS)
+-include $(DEPS)
