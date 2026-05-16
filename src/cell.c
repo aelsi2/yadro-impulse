@@ -63,6 +63,11 @@ static bool cell_val_resolve(cell_val_t *val, const lookup_t *lookup,
     }
     const cell_key_t *key = &val->data.cell_ref;
     cell_t *cell = lookup_get(lookup, key);
+    if (cell == NULL) {
+        fprintf(stderr, "error: cell %s%ld not found\n", key->column_name,
+                key->row_number);
+        return true;
+    }
     if (cell_resolve(cell, lookup, recursion_limit, key)) {
         return true;
     }
