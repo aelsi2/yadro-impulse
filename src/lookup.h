@@ -11,21 +11,22 @@ typedef uint32_t hash_t;
 struct cell;
 
 typedef struct {
-    const char *column_name;
+    char *column_name;
     row_number_t row_number;
 } cell_key_t;
 
-hash_t cell_key_hash(const cell_key_t *key);
+bool cell_key_equals(const cell_key_t *a, const cell_key_t *b);
+void cell_key_copy(cell_key_t *to, const cell_key_t *from);
 void cell_key_free(cell_key_t *key);
 
 typedef struct {
     cell_key_t key;
-    struct cell *cell;
-    bool occupied;
+    struct cell *value;
 } lookup_slot_t;
 
 typedef struct {
     lookup_slot_t *slots;
+    size_t count;
     size_t capacity;
 } lookup_t;
 
