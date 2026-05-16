@@ -34,8 +34,9 @@ bool cell_key_equals(const cell_key_t *a, const cell_key_t *b) {
 
 void cell_key_copy(cell_key_t *to, const cell_key_t *from) {
     size_t col_name_size = strlen(from->column_name) + 1;
-    to->column_name = malloc(col_name_size);
-    memcpy(to->column_name, from->column_name, col_name_size);
+    char *column_name = malloc(col_name_size);
+    memcpy(column_name, from->column_name, col_name_size);
+    to->column_name = column_name;
     to->row_number = from->row_number;
 }
 

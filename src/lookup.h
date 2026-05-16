@@ -11,7 +11,7 @@ typedef uint32_t hash_t;
 struct cell;
 
 typedef struct {
-    char *column_name;
+    const char *column_name;
     row_number_t row_number;
 } cell_key_t;
 

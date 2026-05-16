@@ -5,7 +5,7 @@
 
 static void print_error_loc(FILE *file, const cell_key_t *loc) {
     if (loc) {
-        fprintf(file, "\tat %s%ld\n", loc->column_name, loc->row_number);
+        fprintf(file, "\tat %s%lu\n", loc->column_name, loc->row_number);
     } else {
         fprintf(file, "\tat ?\n");
     }
@@ -64,7 +64,7 @@ static bool cell_val_resolve(cell_val_t *val, const lookup_t *lookup,
     const cell_key_t *key = &val->data.cell_ref;
     cell_t *cell = lookup_get(lookup, key);
     if (cell == NULL) {
-        fprintf(stderr, "error: cell %s%ld not found\n", key->column_name,
+        fprintf(stderr, "error: cell %s%lu not found\n", key->column_name,
                 key->row_number);
         return true;
     }
@@ -153,4 +153,34 @@ static void cell_val_free(cell_val_t *val) {
 void cell_free(cell_t *cell) {
     cell_val_free(&cell->left);
     cell_val_free(&cell->right);
+}
+
+static void cell_val_print(cell_val_t *val, FILE *file) {
+    if (val->type == CV_VALUE) {
+        fprintf(file, "%ld", val->data.value);
+        return;
+    }
+    const cell_key_t *key = &val->data.cell_ref;
+    fprintf(file, "%s%lu", key->column_name, key->row_number);
+}
+
+void cell_print(cell_t *cell, FILE *file) {
+    cell_val_print(&cell->left, file);
+    switch (cell->op) {
+    case OP_NONE:
+        return;
+    case OP_ADD:
+        fprintf(file, "+");
+        break;
+    case OP_SUB:
+        fprintf(file, "-");
+        break;
+    case OP_MUL:
+        fprintf(file, "*");
+        break;
+    case OP_DIV:
+        fprintf(file, "/");
+        break;
+    }
+    cell_val_print(&cell->right, file);
 }

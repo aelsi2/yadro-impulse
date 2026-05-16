@@ -1,6 +1,7 @@
 #ifndef __CELL_H
 #define __CELL_H
 
+#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -52,5 +53,8 @@ bool cell_resolve(cell_t *cell, const lookup_t *lookup, uint32_t depth_limit,
 
 // Frees the data owned by the cell.
 void cell_free(cell_t *cell);
+
+// Prints the cell to the specified file.
+void cell_print(cell_t *cell, FILE *file);
 
 #endif // __CELL_H
