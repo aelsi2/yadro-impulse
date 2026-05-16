@@ -35,6 +35,10 @@ bool cell_key_equals(const cell_key_t *a, const cell_key_t *b) {
 void cell_key_copy(cell_key_t *to, const cell_key_t *from) {
     size_t col_name_size = strlen(from->column_name) + 1;
     char *column_name = malloc(col_name_size);
+    if (column_name == NULL) {
+        fprintf(stderr, "error: could not allocate memory for cell key\n");
+        exit(2);
+    }
     memcpy(column_name, from->column_name, col_name_size);
     to->column_name = column_name;
     to->row_number = from->row_number;
@@ -81,6 +85,11 @@ static void lookup_grow(lookup_t *lookup) {
         lookup->capacity = INITIAL_CAPACITY * GROWTH_FACTOR;
     }
     lookup->slots = calloc(lookup->capacity, sizeof(lookup_slot_t));
+    if (lookup->slots == NULL) {
+        fprintf(stderr,
+                "error: could not allocate memory for cell lookup table\n");
+        exit(2);
+    }
     for (size_t i = 0; i < old_capacity; i++) {
         lookup_slot_t *old_slot = &old_slots[i];
         if (lookup_slot_isempty(old_slot)) {
@@ -115,6 +124,11 @@ void lookup_init(lookup_t *lookup) {
     lookup->count = 0;
     lookup->capacity = INITIAL_CAPACITY;
     lookup->slots = calloc(lookup->capacity, sizeof(lookup_slot_t));
+    if (lookup->slots == NULL) {
+        fprintf(stderr,
+                "error: could not allocate memory for cell lookup table\n");
+        exit(2);
+    }
 }
 
 void lookup_free(lookup_t *lookup) {
