@@ -98,7 +98,7 @@ static void lookup_grow(lookup_t *lookup) {
         lookup_slot_t *new_slot = lookup_find_slot(lookup, &old_slot->key);
         *new_slot = *old_slot;
     }
-    free(old_slots);
+    free((void *)old_slots);
 }
 
 void lookup_set(lookup_t *lookup, const cell_key_t *key, struct cell *value) {
@@ -136,7 +136,7 @@ void lookup_free(lookup_t *lookup) {
         lookup_slot_t *slot = &lookup->slots[i];
         cell_key_free(&slot->key);
     }
-    free(lookup->slots);
+    free((void *)lookup->slots);
     lookup->count = 0;
     lookup->capacity = 0;
 }
