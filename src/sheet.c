@@ -6,15 +6,6 @@
 
 #define RESOLVE_DEPTH 20
 
-void sheet_init(sheet_t *sheet) {
-    sheet->column_names = NULL;
-    sheet->row_numbers = NULL;
-    sheet->cells = NULL;
-    sheet->width = 0;
-    sheet->height = 0;
-    lookup_init(&sheet->lookup);
-}
-
 bool sheet_parse(sheet_t *sheet, FILE *file) {
     parser_t parser;
     parser_init(&parser, file, ',');
@@ -38,26 +29,30 @@ void sheet_free(sheet_t *sheet) {
                 cell_free(cell);
             }
         }
-        free((void*)sheet->cells);
+        free((void *)sheet->cells);
         sheet->cells = NULL;
     }
     sheet->width = 0;
     sheet->height = 0;
-    lookup_free(&sheet->lookup);
 }
 
 bool sheet_resolve(sheet_t *sheet) {
-    cell_key_t loc;
+    cell_ref_t loc;
+    lookup_t lookup;
+    lookup_init(&lookup, sheet);
+
     for (size_t row = 0; row < sheet->height; row++) {
         loc.row_number = sheet->row_numbers[row];
         for (size_t col = 0; col < sheet->width; col++) {
             loc.column_name = sheet->column_names[col];
             cell_t *cell = &sheet->cells[row * sheet->width + col];
-            if (cell_resolve(cell, &sheet->lookup, RESOLVE_DEPTH, &loc)) {
+            if (cell_resolve(cell, &lookup, RESOLVE_DEPTH, &loc)) {
+                lookup_free(&lookup);
                 return true;
             }
         }
     }
+    lookup_free(&lookup);
     return false;
 }
 

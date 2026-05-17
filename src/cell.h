@@ -5,12 +5,19 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "lookup.h"
-
 #define VALUE_MIN INT64_MIN
 #define VALUE_MAX INT64_MAX
+#define ROW_MAX UINT64_MAX
 
+typedef uint64_t row_number_t;
 typedef int64_t value_t;
+
+typedef struct {
+    const char *column_name;
+    row_number_t row_number;
+} cell_ref_t;
+
+void cell_ref_free(cell_ref_t *ref);
 
 typedef enum {
     CV_VALUE = 0,
@@ -19,7 +26,7 @@ typedef enum {
 
 typedef struct {
     union {
-        cell_key_t cell_ref;
+        cell_ref_t cell_ref;
         value_t value;
     } data;
     cell_val_type_t type;
@@ -41,6 +48,8 @@ typedef struct cell {
     op_type_t op;
 } cell_t;
 
+struct lookup;
+
 // Attempts to resolve the value of the cell.
 //
 // depth_limit is decremented for every recursive cell_resolve
@@ -50,8 +59,8 @@ typedef struct cell {
 // and returns false.
 // - On failure: prints the error and the location specified by loc to stderr
 // and returns true.
-bool cell_resolve(cell_t *cell, const lookup_t *lookup, uint32_t depth_limit,
-                  const cell_key_t *loc);
+bool cell_resolve(cell_t *cell, const struct lookup *lookup, uint32_t depth_limit,
+                  const cell_ref_t *loc);
 
 // Frees the data owned by the cell.
 void cell_free(cell_t *cell);

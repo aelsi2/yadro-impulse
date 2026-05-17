@@ -5,7 +5,6 @@
 #include <stdio.h>
 
 #include "cell.h"
-#include "lookup.h"
 
 typedef struct {
     const char **column_names;
@@ -13,10 +12,8 @@ typedef struct {
     cell_t *cells;
     size_t width;
     size_t height;
-    lookup_t lookup;
 } sheet_t;
 
-void sheet_init(sheet_t *sheet);
 bool sheet_parse(sheet_t *sheet, FILE *file);
 void sheet_free(sheet_t *sheet);
 

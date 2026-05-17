@@ -1,14 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "cell.h"
 #include "lookup.h"
 
-static void print_error_loc(FILE *file, const cell_key_t *loc) {
-    if (loc) {
-        fprintf(file, "\tat %s%lu\n", loc->column_name, loc->row_number);
-    } else {
-        fprintf(file, "\tat ?\n");
-    }
+static void print_error_loc(FILE *file, const cell_ref_t *loc) {
+    fprintf(file, "\tat cell %s%lu\n", loc->column_name, loc->row_number);
 }
 
 static bool add_overflows(value_t left, value_t right) {
@@ -61,7 +58,7 @@ static bool cell_val_resolve(cell_val_t *val, const lookup_t *lookup,
     if (val->type == CV_VALUE) {
         return false;
     }
-    const cell_key_t *key = &val->data.cell_ref;
+    const cell_ref_t *key = &val->data.cell_ref;
     cell_t *cell = lookup_get(lookup, key);
     if (cell == NULL) {
         fprintf(stderr, "error: cell %s%lu not found\n", key->column_name,
@@ -71,14 +68,14 @@ static bool cell_val_resolve(cell_val_t *val, const lookup_t *lookup,
     if (cell_resolve(cell, lookup, recursion_limit, key)) {
         return true;
     }
-    cell_key_free(&val->data.cell_ref);
+    cell_ref_free(&val->data.cell_ref);
     val->type = CV_VALUE;
     val->data.value = cell->left.data.value;
     return false;
 }
 
 bool cell_resolve(cell_t *cell, const lookup_t *lookup, uint32_t depth_limit,
-                  const cell_key_t *loc) {
+                  const cell_ref_t *loc) {
     if (depth_limit == 0) {
         fprintf(stderr, "error: depth limit exceeded\n");
         print_error_loc(stderr, loc);
@@ -95,21 +92,14 @@ bool cell_resolve(cell_t *cell, const lookup_t *lookup, uint32_t depth_limit,
         return true;
     }
 
+    value_t result = 0;
     value_t left = cell->left.data.value;
     value_t right = cell->right.data.value;
 
     switch (cell->op) {
     case OP_NONE:
-        return false;
-    case OP_SUB: {
-        if (sub_overflows(left, right)) {
-            fprintf(stderr, "error: subtration overflow (%ld - %ld)\n", left,
-                    right);
-            print_error_loc(stderr, loc);
-            return true;
-        }
-        left -= right;
-    } break;
+        result = left;
+        break;
     case OP_ADD: {
         if (add_overflows(left, right)) {
             fprintf(stderr, "error: addition overflow (%ld + %ld)\n", left,
@@ -117,7 +107,16 @@ bool cell_resolve(cell_t *cell, const lookup_t *lookup, uint32_t depth_limit,
             print_error_loc(stderr, loc);
             return true;
         }
-        left += right;
+        result = left + right;
+    } break;
+    case OP_SUB: {
+        if (sub_overflows(left, right)) {
+            fprintf(stderr, "error: subtration overflow (%ld - %ld)\n", left,
+                    right);
+            print_error_loc(stderr, loc);
+            return true;
+        }
+        result = left - right;
     } break;
     case OP_MUL: {
         if (mul_overflows(left, right)) {
@@ -126,7 +125,7 @@ bool cell_resolve(cell_t *cell, const lookup_t *lookup, uint32_t depth_limit,
             print_error_loc(stderr, loc);
             return true;
         }
-        left *= right;
+        result = left * right;
     } break;
     case OP_DIV: {
         if (right == 0) {
@@ -134,16 +133,27 @@ bool cell_resolve(cell_t *cell, const lookup_t *lookup, uint32_t depth_limit,
             print_error_loc(stderr, loc);
             return true;
         }
-        left /= right;
+        result = left / right;
     } break;
     }
+
+    cell->op = OP_NONE;
+    cell->left.type = CV_VALUE;
+    cell->left.data.value = result;
+
     return false;
+}
+
+void cell_ref_free(cell_ref_t *ref) {
+    free((void *)ref->column_name);
+    ref->column_name = NULL;
+    ref->row_number = 0;
 }
 
 void cell_val_free(cell_val_t *val) {
     switch (val->type) {
     case CV_CELL_REF:
-        cell_key_free(&val->data.cell_ref);
+        cell_ref_free(&val->data.cell_ref);
         break;
     default:
         break;
@@ -162,7 +172,7 @@ static void cell_val_print(cell_val_t *val, FILE *file) {
         fprintf(file, "%ld", val->data.value);
         return;
     }
-    const cell_key_t *key = &val->data.cell_ref;
+    const cell_ref_t *key = &val->data.cell_ref;
     fprintf(file, "%s%lu", key->column_name, key->row_number);
 }
 

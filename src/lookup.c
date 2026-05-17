@@ -5,9 +5,7 @@
 #include "cell.h"
 #include "lookup.h"
 
-#define LOAD_FACTOR 0.75
-#define GROWTH_FACTOR 2
-#define INITIAL_CAPACITY 16
+typedef uint32_t hash_t;
 
 static hash_t fnv_1a(const char *data, size_t length) {
     hash_t result = 2166136261;
@@ -18,125 +16,101 @@ static hash_t fnv_1a(const char *data, size_t length) {
     return result;
 }
 
-static hash_t cell_key_hash(const cell_key_t *key) {
-    hash_t hashes[2];
-    hashes[0] = fnv_1a(key->column_name, strlen(key->column_name));
-    hashes[1] = fnv_1a((const char *)&key->row_number, sizeof(key->row_number));
-    return fnv_1a((const char *)hashes, sizeof(hashes));
+static bool col_slot_isempty(const col_slot_t *slot) {
+    return slot->name == NULL;
 }
 
-bool cell_key_equals(const cell_key_t *a, const cell_key_t *b) {
-    if (a->row_number != b->row_number) {
-        return false;
-    }
-    return strcmp(a->column_name, b->column_name) == 0;
+static bool row_slot_isempty(const row_slot_t *slot) {
+    return !slot->is_taken;
 }
 
-void cell_key_copy(cell_key_t *to, const cell_key_t *from) {
-    size_t col_name_size = strlen(from->column_name) + 1;
-    char *column_name = malloc(col_name_size);
-    if (column_name == NULL) {
-        fprintf(stderr, "error: could not allocate memory for cell key\n");
-        exit(2);
-    }
-    memcpy(column_name, from->column_name, col_name_size);
-    to->column_name = column_name;
-    to->row_number = from->row_number;
-}
-
-void cell_key_free(cell_key_t *key) {
-    free((void *)key->column_name);
-    key->column_name = NULL;
-    key->row_number = 0;
-}
-
-static bool lookup_slot_isempty(const lookup_slot_t *slot) {
-    return slot->key.column_name == NULL;
-}
-
-static lookup_slot_t *lookup_find_slot(const lookup_t *lookup,
-                                       const cell_key_t *key) {
-    size_t initial_index = cell_key_hash(key) % lookup->capacity;
-    size_t index = initial_index;
+static row_slot_t *lookup_find_row_slot(const lookup_t *lookup,
+                                        row_number_t row_number) {
+    size_t index = fnv_1a((const char *)&row_number, sizeof(row_number_t)) %
+                   lookup->row_capacity;
     while (true) {
-        lookup_slot_t *slot = &lookup->slots[index];
-        index = (index + 1) % lookup->capacity;
-        if (lookup_slot_isempty(slot)) {
+        row_slot_t *slot = &lookup->row_slots[index];
+        index = (index + 1) % lookup->row_capacity;
+        if (row_slot_isempty(slot)) {
             return slot;
         }
-        if (cell_key_equals(&slot->key, key)) {
+        if (slot->number == row_number) {
             return slot;
         }
-        if (index == initial_index) {
-            // We've wrapped around the table.
-            // This should never happen, since the hash table should have grown.
-            assert(false && "Wrapped around the hash map without finding a "
-                            "single free slot.");
+    }
+}
+
+static col_slot_t *lookup_find_col_slot(const lookup_t *lookup,
+                                        const char *column_name) {
+    size_t index =
+        fnv_1a(column_name, strlen(column_name)) % lookup->row_capacity;
+    while (true) {
+        col_slot_t *slot = &lookup->col_slots[index];
+        index = (index + 1) % lookup->row_capacity;
+        if (col_slot_isempty(slot)) {
+            return slot;
+        }
+        if (strcmp(slot->name, column_name) == 0) {
+            return slot;
         }
     }
 }
 
-static void lookup_grow(lookup_t *lookup) {
-    size_t old_capacity = lookup->capacity;
-    lookup_slot_t *old_slots = lookup->slots;
-    if (old_capacity >= INITIAL_CAPACITY) {
-        lookup->capacity = old_capacity * GROWTH_FACTOR;
-    } else {
-        lookup->capacity = INITIAL_CAPACITY * GROWTH_FACTOR;
-    }
-    lookup->slots = calloc(lookup->capacity, sizeof(lookup_slot_t));
-    if (lookup->slots == NULL) {
-        fprintf(stderr,
-                "error: could not allocate memory for cell lookup table\n");
-        exit(2);
-    }
-    for (size_t i = 0; i < old_capacity; i++) {
-        lookup_slot_t *old_slot = &old_slots[i];
-        if (lookup_slot_isempty(old_slot)) {
-            continue;
-        }
-        lookup_slot_t *new_slot = lookup_find_slot(lookup, &old_slot->key);
-        *new_slot = *old_slot;
-    }
-    free((void *)old_slots);
-}
-
-void lookup_set(lookup_t *lookup, const cell_key_t *key, struct cell *value) {
-    if (++lookup->count >= lookup->capacity * LOAD_FACTOR) {
-        lookup_grow(lookup);
-    }
-    lookup_slot_t *slot = lookup_find_slot(lookup, key);
-    cell_key_free(&slot->key);
-    cell_key_copy(&slot->key, key);
-    slot->value = value;
-}
-
-struct cell *lookup_get(const lookup_t *lookup, const cell_key_t *key) {
-    lookup_slot_t *slot = lookup_find_slot(lookup, key);
-    if (lookup_slot_isempty(slot)) {
+struct cell *lookup_get(const lookup_t *lookup, const cell_ref_t *key) {
+    col_slot_t *col = lookup_find_col_slot(lookup, key->column_name);
+    if (col_slot_isempty(col)) {
         return NULL;
-    } else {
-        return slot->value;
     }
+    row_slot_t *row = lookup_find_row_slot(lookup, key->row_number);
+    if (row_slot_isempty(row)) {
+        return NULL;
+    }
+
+    size_t index = col->index + row->index * lookup->sheet->width;
+    return &lookup->sheet->cells[index];
 }
 
-void lookup_init(lookup_t *lookup) {
-    lookup->count = 0;
-    lookup->capacity = INITIAL_CAPACITY;
-    lookup->slots = calloc(lookup->capacity, sizeof(lookup_slot_t));
-    if (lookup->slots == NULL) {
-        fprintf(stderr,
-                "error: could not allocate memory for cell lookup table\n");
-        exit(2);
+bool lookup_init(lookup_t *lookup, sheet_t *sheet) {
+    if (sheet->height > SIZE_MAX / 2) {
+        fprintf(stderr, "error: too many rows to build a lookup\n");
+        return true;
     }
+    if (sheet->width > SIZE_MAX / 2) {
+        fprintf(stderr, "error: too many columns to build a lookup\n");
+        return true;
+    }
+
+    lookup->sheet = sheet;
+    lookup->row_capacity = sheet->height * 2;
+    lookup->col_capacity = sheet->width * 2;
+    lookup->row_slots = calloc(sizeof(row_slot_t), lookup->row_capacity);
+    lookup->col_slots = calloc(sizeof(col_slot_t), lookup->col_capacity);
+    if (lookup->row_slots == NULL || lookup->col_slots == NULL) {
+        fprintf(stderr, "error: could not allocate memory for lookup\n");
+    }
+
+    for (size_t i = 0; i < sheet->width; i++) {
+        const char *name = sheet->column_names[i];
+        col_slot_t *slot = lookup_find_col_slot(lookup, name);
+        slot->name = name;
+        slot->index = i;
+    }
+    for (size_t i = 0; i < sheet->height; i++) {
+        row_number_t number = sheet->row_numbers[i];
+        row_slot_t *slot = lookup_find_row_slot(lookup, number);
+        slot->number = number;
+        slot->index = i;
+        slot->is_taken = true;
+    }
+    return false;
 }
 
 void lookup_free(lookup_t *lookup) {
-    for (size_t i = 0; i < lookup->capacity; i++) {
-        lookup_slot_t *slot = &lookup->slots[i];
-        cell_key_free(&slot->key);
-    }
-    free((void *)lookup->slots);
-    lookup->count = 0;
-    lookup->capacity = 0;
+    free((void *)lookup->row_slots);
+    free((void *)lookup->col_slots);
+    lookup->sheet = NULL;
+    lookup->row_slots = NULL;
+    lookup->col_slots = NULL;
+    lookup->row_capacity = 0;
+    lookup->col_capacity = 0;
 }

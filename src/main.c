@@ -22,10 +22,10 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    //if (sheet_resolve(&sheet)) {
-    //    sheet_free(&sheet);
-    //    return 1;
-    //}
+    if (sheet_resolve(&sheet)) {
+        sheet_free(&sheet);
+        return 1;
+    }
     sheet_print(&sheet, stdout);
     sheet_free(&sheet);
     return 0;

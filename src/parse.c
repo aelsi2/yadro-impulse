@@ -1,6 +1,5 @@
 #include "parse.h"
 #include "cell.h"
-#include "lookup.h"
 #include "vector.h"
 
 #include <ctype.h>
@@ -384,8 +383,6 @@ static void row_free(void *ptr, size_t size) {
 }
 
 bool parser_read_sheet(parser_t *parser, sheet_t *sheet) {
-    sheet_init(sheet);
-
     vec_t name_vec;
     vec_init(&name_vec, sizeof(void *), string_free);
 

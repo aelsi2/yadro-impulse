@@ -5,38 +5,32 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ROW_MAX UINT64_MAX
-
-typedef uint64_t row_number_t;
-typedef uint32_t hash_t;
-
-struct cell;
+#include "cell.h"
+#include "sheet.h"
 
 typedef struct {
-    const char *column_name;
-    row_number_t row_number;
-} cell_key_t;
-
-bool cell_key_equals(const cell_key_t *a, const cell_key_t *b);
-void cell_key_copy(cell_key_t *to, const cell_key_t *from);
-void cell_key_free(cell_key_t *key);
+    row_number_t number;
+    size_t index;
+    bool is_taken;
+} row_slot_t;
 
 typedef struct {
-    cell_key_t key;
-    struct cell *value;
-} lookup_slot_t;
+    const char *name;
+    size_t index;
+} col_slot_t;
 
-typedef struct {
-    lookup_slot_t *slots;
-    size_t count;
-    size_t capacity;
+typedef struct lookup {
+    sheet_t *sheet;
+    row_slot_t *row_slots;
+    col_slot_t *col_slots;
+    size_t row_capacity;
+    size_t col_capacity;
 } lookup_t;
 
-void lookup_set(lookup_t *lookup, const cell_key_t *cell_key,
-                struct cell *cell);
-struct cell *lookup_get(const lookup_t *lookup, const cell_key_t *cell_key);
-
-void lookup_init(lookup_t *lookup);
+bool lookup_init(lookup_t *lookup, sheet_t *sheet);
 void lookup_free(lookup_t *lookup);
+
+cell_t *lookup_get(const lookup_t *lookup, const cell_ref_t *cell_key);
+
 
 #endif // __LOOKUP_H
