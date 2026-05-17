@@ -5,7 +5,8 @@
 
 int main(int argc, char **argv) {
     if (argc != 2) {
-        fprintf(stderr, "Usage: %s <FILE>\n", argv[0]);
+        char *program_name = argc > 0 ? argv[0] : "csvreader";
+        fprintf(stderr, "Usage: %s <FILE>\n", program_name);
         return 1;
     }
 
