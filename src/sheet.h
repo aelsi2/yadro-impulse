@@ -16,7 +16,10 @@ typedef struct {
     lookup_t lookup;
 } sheet_t;
 
+void sheet_init(sheet_t *sheet);
+bool sheet_parse(sheet_t *sheet, FILE *file);
 void sheet_free(sheet_t *sheet);
+
 bool sheet_resolve(sheet_t *sheet);
 void sheet_print(sheet_t *sheet, FILE *file);
 

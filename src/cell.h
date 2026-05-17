@@ -25,6 +25,8 @@ typedef struct {
     cell_val_type_t type;
 } cell_val_t;
 
+void cell_val_free(cell_val_t *val);
+
 typedef enum {
     OP_NONE = 0, // No operation (cell value is treated as a literal)
     OP_ADD = 1,

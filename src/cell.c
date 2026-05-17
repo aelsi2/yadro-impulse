@@ -140,7 +140,7 @@ bool cell_resolve(cell_t *cell, const lookup_t *lookup, uint32_t depth_limit,
     return false;
 }
 
-static void cell_val_free(cell_val_t *val) {
+void cell_val_free(cell_val_t *val) {
     switch (val->type) {
     case CV_CELL_REF:
         cell_key_free(&val->data.cell_ref);
@@ -148,6 +148,8 @@ static void cell_val_free(cell_val_t *val) {
     default:
         break;
     }
+    val->type = CV_VALUE;
+    val->data.value = 0;
 }
 
 void cell_free(cell_t *cell) {
@@ -165,6 +167,9 @@ static void cell_val_print(cell_val_t *val, FILE *file) {
 }
 
 void cell_print(cell_t *cell, FILE *file) {
+    if (cell->op != OP_NONE) {
+        fprintf(file, "=");
+    }
     cell_val_print(&cell->left, file);
     switch (cell->op) {
     case OP_NONE:

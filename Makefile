@@ -3,11 +3,14 @@ SRC_DIR = src
 TARGET_EXEC = $(BUILD_DIR)/csvreader
 
 CC = gcc
-CFLAGS = -Wall -O2 -I$(SRC_DIR) -MMD -MP
+CFLAGS = -Wall -g -I$(SRC_DIR) -MMD -MP
 
 SOURCES = \
 	main.c \
 	cell.c \
+	sheet.c \
+	parse.c \
+	vector.c \
 	lookup.c
 
 OBJECTS = $(SOURCES:%.c=$(BUILD_DIR)/%.o)

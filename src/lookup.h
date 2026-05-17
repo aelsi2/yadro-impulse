@@ -5,6 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define ROW_MAX UINT64_MAX
+
 typedef uint64_t row_number_t;
 typedef uint32_t hash_t;
 
