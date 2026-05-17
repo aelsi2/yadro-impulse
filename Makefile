@@ -3,7 +3,7 @@ SRC_DIR = src
 TARGET_EXEC = $(BUILD_DIR)/csvreader
 
 CC = gcc
-CFLAGS = -Wall -I$(SRC_DIR) -MMD -MP $(OPTFLAGS)
+CFLAGS += -Wall -I$(SRC_DIR) -MMD -MP $(OPTFLAGS)
 
 OPTFLAGS = -O2
 debug: OPTFLAGS = -g -fsanitize=undefined -fsanitize=address
