@@ -38,6 +38,7 @@ void sheet_free(sheet_t *sheet) {
                 cell_free(cell);
             }
         }
+        free((void*)sheet->cells);
         sheet->cells = NULL;
     }
     sheet->width = 0;
