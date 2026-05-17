@@ -84,20 +84,38 @@ bool lookup_init(lookup_t *lookup, sheet_t *sheet) {
     lookup->row_capacity = sheet->height * 2;
     lookup->col_capacity = sheet->width * 2;
     lookup->row_slots = calloc(sizeof(row_slot_t), lookup->row_capacity);
-    lookup->col_slots = calloc(sizeof(col_slot_t), lookup->col_capacity);
-    if (lookup->row_slots == NULL || lookup->col_slots == NULL) {
+    if (lookup->row_slots == NULL) {
         fprintf(stderr, "error: could not allocate memory for lookup\n");
+        return true;
+    }
+    lookup->col_slots = calloc(sizeof(col_slot_t), lookup->col_capacity);
+    if (lookup->col_slots == NULL) {
+        free(lookup->row_slots);
+        fprintf(stderr, "error: could not allocate memory for lookup\n");
+        return true;
     }
 
     for (size_t i = 0; i < sheet->width; i++) {
         const char *name = sheet->column_names[i];
         col_slot_t *slot = lookup_find_col_slot(lookup, name);
+        if (!col_slot_isempty(slot)) {
+            free(lookup->row_slots);
+            free(lookup->col_slots);
+            fprintf(stderr, "error: duplicate column name: %s\n", name);
+            return true;
+        }
         slot->name = name;
         slot->index = i;
     }
     for (size_t i = 0; i < sheet->height; i++) {
         row_number_t number = sheet->row_numbers[i];
         row_slot_t *slot = lookup_find_row_slot(lookup, number);
+        if (!row_slot_isempty(slot)) {
+            free(lookup->row_slots);
+            free(lookup->col_slots);
+            fprintf(stderr, "error: duplicate row number: %lu\n", number);
+            return true;
+        }
         slot->number = number;
         slot->index = i;
         slot->is_taken = true;

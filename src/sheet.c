@@ -39,7 +39,9 @@ void sheet_free(sheet_t *sheet) {
 bool sheet_resolve(sheet_t *sheet) {
     cell_ref_t loc;
     lookup_t lookup;
-    lookup_init(&lookup, sheet);
+    if (lookup_init(&lookup, sheet)) {
+        return true;
+    }
 
     for (size_t row = 0; row < sheet->height; row++) {
         loc.row_number = sheet->row_numbers[row];
