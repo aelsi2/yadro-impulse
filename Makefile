@@ -3,7 +3,10 @@ SRC_DIR = src
 TARGET_EXEC = $(BUILD_DIR)/csvreader
 
 CC = gcc
-CFLAGS = -Wall -g -I$(SRC_DIR) -MMD -MP
+CFLAGS = -Wall -I$(SRC_DIR) -MMD -MP $(OPTFLAGS)
+
+OPTFLAGS = -O2
+debug: OPTFLAGS = -g -fsanitize=undefined -fsanitize=address
 
 SOURCES = \
 	main.c \
@@ -18,6 +21,9 @@ DEPS = $(SOURCES:%.c=$(BUILD_DIR)/%.d)
 
 .PHONY: all
 all: $(TARGET_EXEC)
+
+.PHONY: debug
+debug: all
 
 .PHONY: clean
 clean:
