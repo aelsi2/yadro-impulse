@@ -1,19 +1,20 @@
-BUILD_DIR = build
-SRC_DIR = src
-TEST_PASS_DIR = test
-TEST_FAIL_DIR = test/fail
-TARGET_EXEC = $(BUILD_DIR)/csvreader
+BUILD_DIR := build
+SRC_DIR := src
+TEST_PASS_DIR := test
+TEST_FAIL_DIR := test/fail
+TARGET_EXEC := $(BUILD_DIR)/csvreader
 
-CC = gcc
+OPTFLAGS := -O2
+debug: OPTFLAGS := -g -fsanitize=undefined -fsanitize=address
+
+CC := gcc
 CFLAGS += -Wall -I$(SRC_DIR) -MMD -MP $(OPTFLAGS)
-OPTFLAGS = -O2
-debug: OPTFLAGS = -g -fsanitize=undefined -fsanitize=address
 
-SOURCES = $(wildcard $(SRC_DIR)/*.c)
-OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
-DEPS = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.d)
-TESTS_PASS = $(filter-out %.expected.csv,$(wildcard $(TEST_PASS_DIR)/*.csv))
-TESTS_FAIL = $(wildcard $(TEST_FAIL_DIR)/*.csv)
+SOURCES := $(wildcard $(SRC_DIR)/*.c)
+OBJECTS := $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+DEPS := $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.d)
+TESTS_PASS := $(filter-out %.expected.csv,$(wildcard $(TEST_PASS_DIR)/*.csv))
+TESTS_FAIL := $(wildcard $(TEST_FAIL_DIR)/*.csv)
 
 .PHONY: all
 all: $(TARGET_EXEC)
