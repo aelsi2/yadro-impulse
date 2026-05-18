@@ -4,7 +4,7 @@
 #include "parse.h"
 #include "sheet.h"
 
-#define RESOLVE_DEPTH 20
+#define RESOLVE_DEPTH 10000
 
 bool sheet_parse(sheet_t *sheet, FILE *file) {
     parser_t parser;

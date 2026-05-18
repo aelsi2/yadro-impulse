@@ -85,11 +85,9 @@ bool cell_resolve(cell_t *cell, const lookup_t *lookup, uint32_t depth_limit,
     depth_limit -= 1;
 
     if (cell_val_resolve(&cell->left, lookup, depth_limit)) {
-        print_error_loc(stderr, loc);
         return true;
     }
     if (cell_val_resolve(&cell->right, lookup, depth_limit)) {
-        print_error_loc(stderr, loc);
         return true;
     }
 
