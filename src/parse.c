@@ -166,8 +166,13 @@ static bool parser_read_value(parser_t *parser, value_t *value) {
     if (parser_read_unsigned(parser, &parsed_num)) {
         return true;
     }
-    if (parsed_num > (uint64_t)VALUE_MAX) {
+    if (!negative && parsed_num > (uint64_t)VALUE_MAX) {
         fprintf(stderr, "error: number too large\n");
+        print_error_loc(stderr, parser);
+        return true;
+    }
+    if (negative && parsed_num && parsed_num - 1 > (uint64_t)VALUE_MAX) {
+        fprintf(stderr, "error: number too small\n");
         print_error_loc(stderr, parser);
         return true;
     }
