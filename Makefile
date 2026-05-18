@@ -39,7 +39,7 @@ $(OBJECTS): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 
 .PHONY: $(TESTS_PASS)
 $(TESTS_PASS): $(TARGET_EXEC) 
-	$(TARGET_EXEC) $@ | diff - $(subst .csv,.expected.csv,$@)
+	$(TARGET_EXEC) $@ | diff --strip-trailing-cr - $(subst .csv,.expected.csv,$@)
 
 .PHONY: $(TESTS_FAIL)
 $(TESTS_FAIL): $(TARGET_EXEC) 
