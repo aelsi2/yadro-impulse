@@ -6,6 +6,7 @@
 
 #include "cell.h"
 
+// The main spreadsheet structure.
 typedef struct {
     const char **column_names;
     const row_number_t *row_numbers;
@@ -14,10 +15,17 @@ typedef struct {
     size_t height;
 } sheet_t;
 
+// Parses a spreadsheet from the given file.
 bool sheet_parse(sheet_t *sheet, FILE *file);
+
+// Frees the resources owned by the spreadsheet.
 void sheet_free(sheet_t *sheet);
 
+// Resolves all cells in the spreadsheet. See cell_resolve.
+// Returns true on success, false on failure.
 bool sheet_resolve(sheet_t *sheet);
+
+// Prints the spreadsheet to the given file.
 void sheet_print(sheet_t *sheet, FILE *file);
 
 #endif // __SHEET_H
