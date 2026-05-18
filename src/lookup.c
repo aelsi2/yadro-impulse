@@ -5,6 +5,8 @@
 #include "cell.h"
 #include "lookup.h"
 
+#define CAPACITY_FACTOR 2
+
 typedef uint32_t hash_t;
 
 static hash_t fnv_1a(const char *data, size_t length) {
@@ -71,18 +73,18 @@ struct cell *lookup_get(const lookup_t *lookup, const cell_ref_t *key) {
 }
 
 bool lookup_init(lookup_t *lookup, sheet_t *sheet) {
-    if (sheet->height > SIZE_MAX / 2) {
+    if (sheet->height > SIZE_MAX / CAPACITY_FACTOR) {
         fprintf(stderr, "error: too many rows to build a lookup\n");
         return true;
     }
-    if (sheet->width > SIZE_MAX / 2) {
+    if (sheet->width > SIZE_MAX / CAPACITY_FACTOR) {
         fprintf(stderr, "error: too many columns to build a lookup\n");
         return true;
     }
 
     lookup->sheet = sheet;
-    lookup->row_capacity = sheet->height * 2;
-    lookup->col_capacity = sheet->width * 2;
+    lookup->row_capacity = sheet->height * CAPACITY_FACTOR;
+    lookup->col_capacity = sheet->width * CAPACITY_FACTOR;
     lookup->row_slots = calloc(sizeof(row_slot_t), lookup->row_capacity);
     if (lookup->row_slots == NULL) {
         fprintf(stderr, "error: could not allocate memory for lookup\n");

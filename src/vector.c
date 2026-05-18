@@ -5,6 +5,9 @@
 
 #include "vector.h"
 
+#define INITIAL_CAPACITY 4
+#define GROWTH_FACTOR 2
+
 static void print_bad_alloc(FILE *file) {
     fprintf(file, "error: could not allocate memory for spreadsheet data\n");
 }
@@ -19,7 +22,7 @@ void vec_init(vec_t *vec, size_t element_size,
         vec->data = NULL;
         return;
     }
-    vec->capacity = 4;
+    vec->capacity = INITIAL_CAPACITY;
     if (vec->element_size > SIZE_MAX / vec->capacity) {
         print_bad_alloc(stderr);
         exit(2);
@@ -49,11 +52,11 @@ static void vec_ensure_capacity(vec_t *vec) {
     if (vec->count < vec->capacity) {
         return;
     }
-    if (vec->capacity > SIZE_MAX / vec->element_size / 2) {
+    if (vec->capacity > SIZE_MAX / vec->element_size / GROWTH_FACTOR) {
         print_bad_alloc(stderr);
         exit(2);
     }
-    vec->capacity *= 2;
+    vec->capacity *= GROWTH_FACTOR;
     vec->data = realloc(vec->data, vec->capacity * vec->element_size);
     if (vec->data == NULL) {
         print_bad_alloc(stderr);
