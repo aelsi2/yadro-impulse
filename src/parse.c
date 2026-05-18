@@ -18,6 +18,24 @@ void parser_init(parser_t *parser, FILE *file, char col_sep) {
     parser->col_sep = col_sep;
 }
 
+static void print_error_loc(FILE *file, parser_t *parser) {
+    fprintf(file, "\tat file position %" PRIu32 ":%" PRIu32 "\n", parser->line,
+            parser->column);
+}
+
+static bool char_is_valid(parser_t *parser, char ch) {
+    if (isalpha(ch) || isdigit(ch)) {
+        return true;
+    }
+    if (strchr("+-*/=_\n", ch) != NULL) {
+        return true;
+    }
+    if (ch == parser->col_sep) {
+        return true;
+    }
+    return false;
+}
+
 static pch_t parser_peek(parser_t *parser) {
     if (parser->peek_value != PCH_NONE) {
         return parser->peek_value;
@@ -28,6 +46,10 @@ static pch_t parser_peek(parser_t *parser) {
         parser->peek_value = PCH_ERROR;
     } else if (result == EOF) {
         parser->peek_value = PCH_EOF;
+    } else if (!char_is_valid(parser, result)) {
+        fprintf(stderr, "error: invalid character\n");
+        print_error_loc(stderr, parser);
+        parser->peek_value = PCH_ERROR;
     } else {
         parser->peek_value = result;
     }
@@ -46,11 +68,6 @@ static pch_t parser_consume(parser_t *parser) {
         parser->column += 1;
     }
     return result;
-}
-
-static void print_error_loc(FILE *file, parser_t *parser) {
-    fprintf(file, "\tat file position %" PRIu32 ":%" PRIu32 "\n", parser->line,
-            parser->column);
 }
 
 static bool parser_consume_line(parser_t *parser) {
