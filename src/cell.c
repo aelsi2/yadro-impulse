@@ -138,6 +138,11 @@ bool cell_resolve(cell_t *cell, const lookup_t *lookup, uint32_t depth_limit,
             print_error_loc(stderr, loc);
             return true;
         }
+        if (left == VALUE_MIN && right == -1) {
+            fprintf(stderr, "error: division overflow\n");
+            print_error_loc(stderr, loc);
+            return true;
+        }
         result = left / right;
     } break;
     }
