@@ -6,8 +6,8 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-#define PRI_VALUE PRIu64
-#define PRI_ROW PRIi64
+#define PRI_VALUE PRIi64
+#define PRI_ROW PRIu64
 
 #define VALUE_MIN INT64_MIN
 #define VALUE_MAX INT64_MAX
