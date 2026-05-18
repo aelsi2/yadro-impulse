@@ -89,11 +89,23 @@ static bool parser_consume_line(parser_t *parser) {
 }
 
 static bool parser_read_name(parser_t *parser, char **name) {
+    pch_t pch = parser_peek(parser);
+    if (pch == PCH_EOF || pch == '\n' || pch == parser->col_sep) {
+        fprintf(stderr, "error: column name cannot be empty\n");
+        print_error_loc(stderr, parser);
+        return true;
+    }
+    if (pch > 0 && !isalpha(pch) && pch != '_') {
+        fprintf(stderr, "error: column name must contain only letters and '_'\n");
+        print_error_loc(stderr, parser);
+        return true;
+    }
+    
     vec_t vec;
     vec_init(&vec, sizeof(char), NULL);
 
     while (true) {
-        pch_t pch = parser_peek(parser);
+        pch = parser_peek(parser);
         if (pch == PCH_ERROR) {
             vec_free(&vec);
             return true;
@@ -107,13 +119,6 @@ static bool parser_read_name(parser_t *parser, char **name) {
         char ch = pch;
         vec_append(&vec, &ch);
         parser_consume(parser);
-    }
-
-    if (vec.count == 0) {
-        fprintf(stderr, "error: column name cannot be empty\n");
-        print_error_loc(stderr, parser);
-        vec_free(&vec);
-        return true;
     }
 
     static const char zero = '\0';
