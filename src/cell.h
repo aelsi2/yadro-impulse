@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <inttypes.h>
+
+#define PRI_VALUE PRIu64
+#define PRI_ROW PRIi64
 
 #define VALUE_MIN INT64_MIN
 #define VALUE_MAX INT64_MAX

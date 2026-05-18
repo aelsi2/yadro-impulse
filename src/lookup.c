@@ -115,7 +115,8 @@ bool lookup_init(lookup_t *lookup, sheet_t *sheet) {
         if (!row_slot_isempty(slot)) {
             free(lookup->row_slots);
             free(lookup->col_slots);
-            fprintf(stderr, "error: duplicate row number: %lu\n", number);
+            fprintf(stderr, "error: duplicate row number: %" PRI_ROW "\n",
+                    number);
             return true;
         }
         slot->number = number;

@@ -64,7 +64,7 @@ void sheet_print(sheet_t *sheet, FILE *file) {
     }
     fprintf(file, "\n");
     for (size_t row = 0; row < sheet->height; row++) {
-        fprintf(file, "%lu", sheet->row_numbers[row]);
+        fprintf(file, "%" PRI_ROW, sheet->row_numbers[row]);
         for (size_t col = 0; col < sheet->width; col++) {
             fprintf(file, ",");
             cell_print(&sheet->cells[row * sheet->width + col], file);

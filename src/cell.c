@@ -5,7 +5,8 @@
 #include "lookup.h"
 
 static void print_error_loc(FILE *file, const cell_ref_t *loc) {
-    fprintf(file, "\tat cell %s%lu\n", loc->column_name, loc->row_number);
+    fprintf(file, "\tat cell %s%" PRI_ROW "\n", loc->column_name,
+            loc->row_number);
 }
 
 static bool add_overflows(value_t left, value_t right) {
@@ -61,8 +62,8 @@ static bool cell_val_resolve(cell_val_t *val, const lookup_t *lookup,
     const cell_ref_t *key = &val->data.cell_ref;
     cell_t *cell = lookup_get(lookup, key);
     if (cell == NULL) {
-        fprintf(stderr, "error: cell %s%lu not found\n", key->column_name,
-                key->row_number);
+        fprintf(stderr, "error: cell %s%" PRI_ROW " not found\n",
+                key->column_name, key->row_number);
         return true;
     }
     if (cell_resolve(cell, lookup, recursion_limit, key)) {
@@ -102,8 +103,10 @@ bool cell_resolve(cell_t *cell, const lookup_t *lookup, uint32_t depth_limit,
         break;
     case OP_ADD: {
         if (add_overflows(left, right)) {
-            fprintf(stderr, "error: addition overflow (%ld + %ld)\n", left,
-                    right);
+            fprintf(stderr,
+                    "error: addition overflow (%" PRI_VALUE " + %" PRI_VALUE
+                    ")\n",
+                    left, right);
             print_error_loc(stderr, loc);
             return true;
         }
@@ -111,8 +114,10 @@ bool cell_resolve(cell_t *cell, const lookup_t *lookup, uint32_t depth_limit,
     } break;
     case OP_SUB: {
         if (sub_overflows(left, right)) {
-            fprintf(stderr, "error: subtration overflow (%ld - %ld)\n", left,
-                    right);
+            fprintf(stderr,
+                    "error: subtraction overflow (%" PRI_VALUE " - %" PRI_VALUE
+                    ")\n",
+                    left, right);
             print_error_loc(stderr, loc);
             return true;
         }
@@ -120,7 +125,9 @@ bool cell_resolve(cell_t *cell, const lookup_t *lookup, uint32_t depth_limit,
     } break;
     case OP_MUL: {
         if (mul_overflows(left, right)) {
-            fprintf(stderr, "error: multiplication overflow (%ld * %ld)\n",
+            fprintf(stderr,
+                    "error: multiplication overflow (%" PRI_VALUE
+                    " * %" PRI_VALUE ")\n",
                     left, right);
             print_error_loc(stderr, loc);
             return true;
@@ -169,11 +176,11 @@ void cell_free(cell_t *cell) {
 
 static void cell_val_print(cell_val_t *val, FILE *file) {
     if (val->type == CV_VALUE) {
-        fprintf(file, "%ld", val->data.value);
+        fprintf(file, "%" PRI_VALUE, val->data.value);
         return;
     }
     const cell_ref_t *key = &val->data.cell_ref;
-    fprintf(file, "%s%lu", key->column_name, key->row_number);
+    fprintf(file, "%s%" PRI_ROW, key->column_name, key->row_number);
 }
 
 void cell_print(cell_t *cell, FILE *file) {

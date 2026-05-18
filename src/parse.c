@@ -49,7 +49,8 @@ static pch_t parser_consume(parser_t *parser) {
 }
 
 static void print_error_loc(FILE *file, parser_t *parser) {
-    fprintf(file, "\tat file position %u:%u\n", parser->line, parser->column);
+    fprintf(file, "\tat file position %" PRIu32 ":%" PRIu32 "\n", parser->line,
+            parser->column);
 }
 
 static bool parser_consume_line(parser_t *parser) {
