@@ -45,10 +45,10 @@ static row_slot_t *lookup_find_row_slot(const lookup_t *lookup,
 static col_slot_t *lookup_find_col_slot(const lookup_t *lookup,
                                         const char *column_name) {
     size_t index =
-        fnv_1a(column_name, strlen(column_name)) % lookup->row_capacity;
+        fnv_1a(column_name, strlen(column_name)) % lookup->col_capacity;
     while (true) {
         col_slot_t *slot = &lookup->col_slots[index];
-        index = (index + 1) % lookup->row_capacity;
+        index = (index + 1) % lookup->col_capacity;
         if (col_slot_isempty(slot)) {
             return slot;
         }
