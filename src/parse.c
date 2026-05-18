@@ -198,7 +198,7 @@ static bool parser_read_value(parser_t *parser, value_t *value) {
         print_error_loc(stderr, parser);
         return true;
     }
-    *value = negative ? -(value_t)parsed_num : (value_t)parsed_num;
+    *value = negative ? (value_t)-parsed_num : (value_t)parsed_num;
     return false;
 }
 
