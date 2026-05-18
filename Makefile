@@ -6,21 +6,12 @@ TARGET_EXEC = $(BUILD_DIR)/csvreader
 
 CC = gcc
 CFLAGS += -Wall -I$(SRC_DIR) -MMD -MP $(OPTFLAGS)
-
 OPTFLAGS = -O2
 debug: OPTFLAGS = -g -fsanitize=undefined -fsanitize=address
 
-SOURCES = \
-	main.c \
-	cell.c \
-	sheet.c \
-	parse.c \
-	vector.c \
-	lookup.c
-
-OBJECTS = $(SOURCES:%.c=$(BUILD_DIR)/%.o)
-DEPS = $(SOURCES:%.c=$(BUILD_DIR)/%.d)
-
+SOURCES = $(wildcard $(SRC_DIR)/*.c)
+OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+DEPS = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.d)
 TESTS_PASS = $(filter-out %.expected.csv,$(wildcard $(TEST_PASS_DIR)/*.csv))
 TESTS_FAIL = $(wildcard $(TEST_FAIL_DIR)/*.csv)
 
@@ -41,7 +32,7 @@ test: $(TESTS_PASS) $(TESTS_FAIL)
 $(TARGET_EXEC): $(OBJECTS)
 	$(LINK.c) $^ -o $@
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+$(OBJECTS): $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
 	$(COMPILE.c) $< -o $@
 
