@@ -186,7 +186,7 @@ static bool parser_read_header(parser_t *parser, vec_t *vec) {
         if (pch == PCH_ERROR) {
             return true;
         }
-        if (pch == parser->col_sep || pch == PCH_EOF) {
+        if (pch == parser->col_sep || pch == PCH_EOF || pch == '\n') {
             break;
         }
         parser_consume(parser);
